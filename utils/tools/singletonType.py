@@ -1,3 +1,6 @@
+__all__ = ['SingletonType']
+
+
 class SingletonType(type):
     instance = {}
 

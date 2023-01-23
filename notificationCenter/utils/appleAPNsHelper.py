@@ -5,12 +5,11 @@ from enum import Enum
 from typing import Dict, Optional
 import time
 
-import requests
 from pydantic import BaseModel, ValidationError
 import jwt
 import httpx
 
-from utils.tools.configManager import ConfigReader
+from utils.tools.configManager import ConfigReader, BASE_DIR
 from utils.tools.singletonType import SingletonType
 
 
@@ -33,10 +32,10 @@ class AppleAPNsHelper(metaclass=SingletonType):
         self.team_id = config.get_config('AuthKeyConfig', 'TeamId')
         self.app_id = config.get_config('AuthKeyConfig', 'AppId')
 
-        with open(config.get_config('AuthKeyConfig', 'KeyPath'), 'r') as f:
+        with open(str(BASE_DIR) + config.get_config('AuthKeyConfig', 'KeyPath'), 'r') as f:
             self.auth_key = f.read()
 
-        self.apns_token_save_path = config.get_config('AuthKeyConfig', 'TokenSavePath')
+        self.apns_token_save_path = str(BASE_DIR) + config.get_config('AuthKeyConfig', 'TokenSavePath')
 
         if os.path.exists(self.apns_token_save_path):
             with open(self.apns_token_save_path, 'r') as f:

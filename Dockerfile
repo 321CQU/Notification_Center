@@ -7,6 +7,6 @@ RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 53210
 
 CMD ["python", "server.py"]

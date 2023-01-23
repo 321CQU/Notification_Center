@@ -1,6 +1,6 @@
 kind: pipeline
 type: ssh
-name: 部署API网关
+name: 部署微服务-通知中心
 
 server:
   host:
@@ -21,13 +21,13 @@ steps:
   commands:
     - git config --global http.proxy http://127.0.0.1:7890
     - git config --global https.proxy http://127.0.0.1:7890
-    - git clone https://github.com/ZhuLegend/321CQU_APIGateway.git
-    - cd ./321CQU_APIGateway/
+    - git clone https://github.com/ZhuLegend/321CQU_Notification_Center.git
+    - cd ./321CQU_Notification_Center/
     - git checkout main
 
 - name: 新建镜像
   commands:
-    - cd ./321CQU_APIGateway/
+    - cd ./321CQU_Notification_Center/
     - docker-compose up -d
   depends_on:
     - clone
@@ -65,5 +65,5 @@ steps:
         - failure
 
 depends_on:
-  - 部署API网关
+  - 部署微服务-通知中心
 
