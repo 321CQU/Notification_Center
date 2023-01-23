@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 53210
 
-CMD ["python", "server.py"]
+CMD ["python", "main.py"]

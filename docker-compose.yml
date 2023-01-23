@@ -7,4 +7,4 @@ services:
      - "53210:53210"
     restart: always
     volumes:
-      - /www/notification_center/notification_center/config:/src/utils/config
+      - /www/services/notification_center/config:/src/utils/config
