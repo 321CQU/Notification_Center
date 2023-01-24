@@ -14,9 +14,10 @@ class SqlManager(metaclass=SingletonType):
         # self.connect_args = (str(BASE_DIR) + ConfigReader().get_config('DatabaseConfig', 'path'),)
         self.connect_args = {
             'host': ConfigReader().get_config('DatabaseConfig', 'host'),
-            'port': ConfigReader().get_config('DatabaseConfig', 'port'),
+            'port': int(ConfigReader().get_config('DatabaseConfig', 'port')),
             'user': ConfigReader().get_config('DatabaseConfig', 'user'),
             'password': ConfigReader().get_config('DatabaseConfig', 'password'),
+            'db': ConfigReader().get_config('DatabaseConfig', 'targetDatabase')
         }
 
     @asynccontextmanager
@@ -25,18 +26,13 @@ class SqlManager(metaclass=SingletonType):
             try:
                 yield db
             except aiomysql.OperationalError as e:
+                print("sql error, rollback, info: \n", e)
                 await db.rollback()
             finally:
                 await db.commit()
 
     @asynccontextmanager
-    async def execute(self, sql: str, parameters: Iterable[Any] = None) -> aiomysql.Cursor:
+    async def cursor(self) -> aiomysql.Cursor:
         async with self.connect() as db:
-            async with db.execute(sql, parameters) as cursor:
-                yield cursor
-
-    @asynccontextmanager
-    async def executemany(self, sql: str, parameters: Iterable[Iterable[Any]]) -> aiomysql.Cursor:
-        async with self.connect() as db:
-            async with db.executemany(sql, parameters) as cursor:
+            async with db.cursor() as cursor:
                 yield cursor

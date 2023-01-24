@@ -28,7 +28,9 @@ steps:
 - name: 新建镜像
   commands:
     - cd ./321CQU_Notification_Center/
+    - docker-compose build
     - docker-compose up -d
+    - docker image prune -f
   depends_on:
     - clone
 
