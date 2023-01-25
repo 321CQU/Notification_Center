@@ -2,9 +2,18 @@ version: '3'
 services:
 
   notification_center:
+    container_name: 321cqu-notification-center
     build: .
-    ports:
-     - "53210:53210"
+    expose:
+      - "53210"
     restart: always
     volumes:
       - /www/services/notification_center/config:/src/utils/config
+    networks:
+      - persist
+
+networks:
+  persist:
+    external:
+      name: 321cqu
+
