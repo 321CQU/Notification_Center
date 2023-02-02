@@ -9,8 +9,9 @@ from pydantic import BaseModel, ValidationError
 import jwt
 import httpx
 
+from _321CQU.tools import Singleton
+
 from utils.tools.configManager import ConfigReader, BASE_DIR
-from utils.tools.singletonType import SingletonType
 
 
 class PushType(str, Enum):
@@ -23,7 +24,7 @@ class TokenInfo(BaseModel):
     timestamp: float
 
 
-class AppleAPNsHelper(metaclass=SingletonType):
+class AppleAPNsHelper(metaclass=Singleton):
     def __init__(self):
         config = ConfigReader()
         self._base_url = config.get_config('AppleServiceConfig', 'baseUrl')

@@ -4,7 +4,8 @@ import grpc
 
 from utils.tools.configManager import ConfigReader
 from notificationCenter.gRPC_Sercice import ApnsService
-from notificationCenter.proto import apns_pb2_grpc
+
+from micro_services_protobuf.notification_center import apns_pb2_grpc
 
 
 async def serve():
@@ -21,4 +22,4 @@ async def serve():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    asyncio.get_event_loop().run_until_complete(serve())
+    asyncio.new_event_loop().run_until_complete(serve())

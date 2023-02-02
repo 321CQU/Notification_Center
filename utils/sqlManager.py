@@ -1,15 +1,15 @@
 from contextlib import asynccontextmanager
-from typing import Iterable, List, Any
 
 import aiomysql
 
-from utils.tools.singletonType import SingletonType
-from utils.tools.configManager import ConfigReader, BASE_DIR
+from _321CQU.tools import Singleton
+
+from utils.tools.configManager import ConfigReader
 
 __all__ = ['SqlManager']
 
 
-class SqlManager(metaclass=SingletonType):
+class SqlManager(metaclass=Singleton):
     def __init__(self):
         # self.connect_args = (str(BASE_DIR) + ConfigReader().get_config('DatabaseConfig', 'path'),)
         self.connect_args = {

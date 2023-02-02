@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 from pydantic import BaseModel, Field
 
-from ..proto.apns_pb2 import SendNotificationRequest
+from micro_services_protobuf.notification_center.apns_pb2 import SendNotificationRequest
 
 __all__ = ['AppleAlert', 'AppleNotification']
 
