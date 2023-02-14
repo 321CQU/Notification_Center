@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 from pydantic import BaseModel, Field
 
-from micro_services_protobuf.notification_center.apns_pb2 import SendNotificationRequest
+from micro_services_protobuf.notification_center.apns_pb2 import SendApnsNotificationRequest
 
 __all__ = ['AppleAlert', 'AppleNotification']
 
@@ -16,7 +16,7 @@ class AppleAlert(BaseModel):
     body: str = Field(description='通知正文')
 
     @staticmethod
-    def from_proto(obj: SendNotificationRequest.AppleNotification.AppleAlert):
+    def from_proto(obj: SendApnsNotificationRequest.AppleNotification.AppleAlert):
         return AppleAlert(title=obj.title, subtitle=obj.subtitle if obj.subtitle != '' else None, body=obj.body)
 
 
@@ -29,7 +29,7 @@ class AppleNotification(BaseModel):
     category: Optional[str] = Field(description='通知的类型')
 
     @staticmethod
-    def from_proto(obj: SendNotificationRequest.AppleNotification):
+    def from_proto(obj: SendApnsNotificationRequest.AppleNotification):
         return AppleNotification(alert=AppleAlert.from_proto(obj.alert), badge=obj.badge if obj.badge != -1 else None,
                                  category=obj.category if obj.category != '' else None)
 

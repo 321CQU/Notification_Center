@@ -17,7 +17,7 @@ class SqlManager(metaclass=Singleton):
             'port': int(ConfigReader().get_config('DatabaseConfig', 'port')),
             'user': ConfigReader().get_config('DatabaseConfig', 'user'),
             'password': ConfigReader().get_config('DatabaseConfig', 'password'),
-            'db': ConfigReader().get_config('DatabaseConfig', 'targetDatabase')
+            'db': ConfigReader().get_config('DatabaseConfig', 'targetDatabase'),
         }
 
     @asynccontextmanager
