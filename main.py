@@ -4,6 +4,7 @@ import grpc
 
 from notificationCenter.ApnsService import ApnsService
 from notificationCenter.WechatService import WechatService
+from notificationCenter.NotificationService import NotificationService
 
 from micro_services_protobuf.notification_center import service_pb2_grpc as notification_grpc
 from _321CQU.tools.gRPCManager import gRPCManager, ServiceEnum
@@ -15,6 +16,7 @@ async def serve():
     server = grpc.aio.server()
     notification_grpc.add_ApnsServicer_to_server(ApnsService(), server)
     notification_grpc.add_WechatServicer_to_server(WechatService(), server)
+    notification_grpc.add_NotificationServicer_to_server(NotificationService(), server)
     server.add_insecure_port('[::]:' + port)
     await server.start()
     await server.wait_for_termination()
