@@ -31,7 +31,7 @@ async def _update_subscribe_table(openid: str, event: NotificationEvent, is_subs
 class WechatService(notification_grpc.WechatServicer):
     async def SetUserOpenId(self, request: wechat_model.SetUserOpenIdRequest, context: ServicerContext):
         openid: str
-        async with AsyncClient() as client:
+        async with AsyncClient(timeout=10) as client:
             res = await client.get(HttpServiceManager().host(ServiceEnum.WechatManager) + f"/openid/{request.code}",
                                    params={'token': ConfigReader().get_config('WechatMiniAppSetting', 'secret')})
             openid = res.text
