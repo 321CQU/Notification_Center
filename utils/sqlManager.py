@@ -3,26 +3,15 @@ from contextlib import asynccontextmanager
 import aiomysql
 
 from _321CQU.tools import Singleton
+from _321CQU.sql_helper import DatabaseConfig
 
-from utils.tools.configManager import ConfigReader
-
-__all__ = ['SqlManager']
+__all__ = ['NCSqlManager']
 
 
-class SqlManager(metaclass=Singleton):
-    def __init__(self):
-        # self.connect_args = (str(BASE_DIR) + ConfigReader().get_config('DatabaseConfig', 'path'),)
-        self.connect_args = {
-            'host': ConfigReader().get_config('DatabaseConfig', 'host'),
-            'port': int(ConfigReader().get_config('DatabaseConfig', 'port')),
-            'user': ConfigReader().get_config('DatabaseConfig', 'user'),
-            'password': ConfigReader().get_config('DatabaseConfig', 'password'),
-            'db': ConfigReader().get_config('DatabaseConfig', 'targetDatabase'),
-        }
-
+class NCSqlManager(metaclass=Singleton):
     @asynccontextmanager
-    async def connect(self) -> aiomysql.Connection:
-        async with aiomysql.connect(**self.connect_args) as db:
+    async def connect(self, config: DatabaseConfig) -> aiomysql.Connection:
+        async with aiomysql.connect(**config.config_dict) as db:
             try:
                 yield db
             except aiomysql.OperationalError as e:
@@ -32,7 +21,7 @@ class SqlManager(metaclass=Singleton):
                 await db.commit()
 
     @asynccontextmanager
-    async def cursor(self) -> aiomysql.Cursor:
-        async with self.connect() as db:
+    async def cursor(self, config: DatabaseConfig) -> aiomysql.Cursor:
+        async with self.connect(config) as db:
             async with db.cursor() as cursor:
                 yield cursor

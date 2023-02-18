@@ -5,14 +5,16 @@ from micro_services_protobuf.notification_center import apns_pb2
 from micro_services_protobuf.notification_center import service_pb2_grpc as notification_grpc
 from micro_services_protobuf.common_pb2 import DefaultResponse
 
+from _321CQU.sql_helper.SqlManager import DatabaseConfig
+
 from notificationCenter.models.apnsModels import AppleNotification
-from utils.sqlManager import SqlManager
+from utils.sqlManager import NCSqlManager
 from .utils.appleAPNsHelper import AppleAPNsHelper
 
 
 class ApnsService(notification_grpc.ApnsServicer):
     async def SetUserApns(self, request: apns_pb2.SetUserApnsRequest, context):
-        async with SqlManager().cursor() as cursor:
+        async with NCSqlManager().cursor(DatabaseConfig.Apns) as cursor:
             await cursor.execute('select count(uid) from Apns where uid = %s limit 1', (request.uid,))
             temp_result = await cursor.fetchone()
             if temp_result[0] == 1:
@@ -22,7 +24,7 @@ class ApnsService(notification_grpc.ApnsServicer):
         return DefaultResponse(msg='success')
 
     async def SendNotificationToUser(self, request: apns_pb2.SendApnsNotificationRequest, context: ServicerContext):
-        async with SqlManager().cursor() as cursor:
+        async with NCSqlManager().cursor(DatabaseConfig.Apns) as cursor:
             await cursor.execute('select apn from Apns where uid = %s', (request.uid,))
             apn = await cursor.fetchone()
             if apn is None:

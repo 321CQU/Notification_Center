@@ -4,18 +4,20 @@ from httpx import AsyncClient
 
 from _321CQU.service import ServiceEnum
 from _321CQU.tools.httpServiceManager import HttpServiceManager
+from _321CQU.sql_helper import DatabaseConfig
 
 from micro_services_protobuf.notification_center import service_pb2_grpc as notification_grpc
 from micro_services_protobuf.notification_center import wechat_pb2 as wechat_model
 from micro_services_protobuf import common_pb2 as common_model
+from micro_services_protobuf.protobuf_enum.notification_center import NotificationEvent
 
-from notificationCenter.subscribe import NotificationEvent, handle_subscribe_update
-from utils.sqlManager import SqlManager
+from notificationCenter.subscribe import handle_subscribe_update
+from utils.sqlManager import NCSqlManager
 from utils.tools.configManager import ConfigReader
 
 
 async def _update_subscribe_table(openid: str, event: NotificationEvent, is_subscribe: bool, context: ServicerContext):
-    async with SqlManager().cursor() as cursor:
+    async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
         await cursor.execute('select uid from Openid where openid = %s', (openid,))
         uid = await cursor.fetchone()
         if uid is None:
@@ -34,7 +36,7 @@ class WechatService(notification_grpc.WechatServicer):
                                    params={'token': ConfigReader().get_config('WechatMiniAppSetting', 'secret')})
             openid = res.text
 
-        async with SqlManager().cursor() as cursor:
+        async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
             await cursor.execute('select uid from Openid where uid = %s', (request.uid,))
             res = await cursor.fetchone()
             if res is not None:

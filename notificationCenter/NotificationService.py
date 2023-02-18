@@ -1,26 +1,48 @@
+from grpc import StatusCode
 from grpc.aio import ServicerContext
 
 from micro_services_protobuf.notification_center import service_pb2_grpc as notification_grpc
 from micro_services_protobuf.notification_center import event_pb2 as notification_model
 from micro_services_protobuf import common_pb2 as common_model
+from micro_services_protobuf.protobuf_enum.notification_center import NotificationEvent
 
-from notificationCenter.subscribe import NotificationEvent, handle_subscribe_update
-from utils.sqlManager import SqlManager
+from _321CQU.sql_helper.SqlManager import DatabaseConfig
+
+from notificationCenter.subscribe import handle_subscribe_update
+from utils.sqlManager import NCSqlManager
 
 
 __all__ = ['NotificationService']
 
 
+async def _handle_update_score_query(request: notification_model.UpdateEventSubscribeRequest, context: ServicerContext):
+    async with NCSqlManager().cursor(DatabaseConfig.User) as cursor:
+        auth = request.extra_data.auth
+        password = request.extra_data.password
+        await cursor.execute('select count(auth) from UserAuthBind where uid = %s', (request.uid,))
+        if (await cursor.fetchone())[0] == 0:
+            if auth == '' or password == '':
+                await context.abort(StatusCode.UNAVAILABLE, details='账号或密码为空')
+            await cursor.execute('insert into UserAuthBind (uid, auth, password) VALUES (%s, %s, %s)',
+                                 (request.uid, auth, password))
+        else:
+            if auth == '' or password == '':
+                return
+            await cursor.execute('update UserAuthBind set auth = %s, password = %s where uid = %s',
+                                 (auth, password, request.uid))
+
+
 class NotificationService(notification_grpc.NotificationServicer):
     async def UpdateEventSubscribe(self, request: notification_model.UpdateEventSubscribeRequest,
                                    context: ServicerContext):
-        await handle_subscribe_update(request.uid, NotificationEvent(request.event), request.is_subscribe)
+        event = NotificationEvent(request.event)
+        if event == NotificationEvent.ScoreQuery:
+            await _handle_update_score_query(request, context)
+        await handle_subscribe_update(request.uid, event, request.is_subscribe)
         return common_model.DefaultResponse(msg='success')
 
     async def FetchSubscribeInfo(self, request: common_model.UserId, context: ServicerContext):
-        async with SqlManager().cursor() as cursor:
-            import aiomysql
-            cursor: aiomysql.Cursor
+        async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
             await cursor.execute('select event_id from Subscribe where uid = %s', (request.uid,))
             events = await cursor.fetchall()
             result = []
