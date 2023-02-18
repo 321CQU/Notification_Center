@@ -14,17 +14,13 @@ from .utils.appleAPNsHelper import AppleAPNsHelper
 
 class ApnsService(notification_grpc.ApnsServicer):
     async def SetUserApns(self, request: apns_pb2.SetUserApnsRequest, context):
-        async with NCSqlManager().cursor(DatabaseConfig.Apns) as cursor:
-            await cursor.execute('select count(uid) from Apns where uid = %s limit 1', (request.uid,))
-            temp_result = await cursor.fetchone()
-            if temp_result[0] == 1:
-                await cursor.execute('update Apns set apn = %s where uid = %s', (request.apn, request.uid))
-            else:
-                await cursor.execute('insert into Apns (uid, apn) values (%s, %s)', (request.uid, request.apn))
+        async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
+            await cursor.execute('insert into Apns (uid, apn) values (%s, %s) on duplicate key update '
+                                 'Apns.apn = apn', (request.uid, request.apn))
         return DefaultResponse(msg='success')
 
     async def SendNotificationToUser(self, request: apns_pb2.SendApnsNotificationRequest, context: ServicerContext):
-        async with NCSqlManager().cursor(DatabaseConfig.Apns) as cursor:
+        async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
             await cursor.execute('select apn from Apns where uid = %s', (request.uid,))
             apn = await cursor.fetchone()
             if apn is None:

@@ -19,17 +19,10 @@ async def _handle_update_score_query(request: notification_model.UpdateEventSubs
     async with NCSqlManager().cursor(DatabaseConfig.User) as cursor:
         auth = request.extra_data.auth
         password = request.extra_data.password
-        await cursor.execute('select count(auth) from UserAuthBind where uid = %s', (request.uid,))
-        if (await cursor.fetchone())[0] == 0:
-            if auth == '' or password == '':
-                await context.abort(StatusCode.UNAVAILABLE, details='账号或密码为空')
-            await cursor.execute('insert into UserAuthBind (uid, auth, password) VALUES (%s, %s, %s)',
-                                 (request.uid, auth, password))
-        else:
-            if auth == '' or password == '':
-                return
-            await cursor.execute('update UserAuthBind set auth = %s, password = %s where uid = %s',
-                                 (auth, password, request.uid))
+        if auth == '' or password == '':
+            await context.abort(StatusCode.UNAVAILABLE, details='账号或密码为空')
+        await cursor.execute('insert into UserAuthBind (uid, auth, password) values (%s, %s, %s) '
+                             'on duplicate key update UserAuthBind.password = password', request.uid, auth, password)
 
 
 class NotificationService(notification_grpc.NotificationServicer):

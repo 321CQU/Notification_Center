@@ -30,19 +30,14 @@ async def _update_subscribe_table(openid: str, event: NotificationEvent, is_subs
 
 class WechatService(notification_grpc.WechatServicer):
     async def SetUserOpenId(self, request: wechat_model.SetUserOpenIdRequest, context: ServicerContext):
-        openid: str
         async with AsyncClient(timeout=10) as client:
             res = await client.get(HttpServiceManager().host(ServiceEnum.WechatManager) + f"/openid/{request.code}",
                                    params={'token': ConfigReader().get_config('WechatMiniAppSetting', 'secret')})
             openid = res.text
 
         async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
-            await cursor.execute('select uid from Openid where uid = %s', (request.uid,))
-            res = await cursor.fetchone()
-            if res is not None:
-                await cursor.execute('update Openid set openid = %s where uid = %s', (openid, request.uid))
-            else:
-                await cursor.execute('insert into Openid (uid, openid) VALUE (%s, %s)', (request.uid, openid))
+            await cursor.execute('insert into Openid (uid, openid) VALUE (%s, %s) on duplicate key update '
+                                 'Openid.openid = openid', (request.uid, openid))
 
         return common_model.DefaultResponse(msg="success")
 
