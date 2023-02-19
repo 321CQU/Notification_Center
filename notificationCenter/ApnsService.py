@@ -20,11 +20,7 @@ class ApnsService(notification_grpc.ApnsServicer):
         return DefaultResponse(msg='success')
 
     async def SendNotificationToUser(self, request: apns_pb2.SendApnsNotificationRequest, context: ServicerContext):
-        async with NCSqlManager().cursor(DatabaseConfig.Notification) as cursor:
-            await cursor.execute('select apn from Apns where uid = %s', (request.uid,))
-            apn = await cursor.fetchone()
-            if apn is None:
-                await context.abort(StatusCode.UNAVAILABLE, '无法查询到相关用户')
-            apns_helper = AppleAPNsHelper()
-            await apns_helper.send_message(apn[0], AppleNotification.from_proto(request.notification).launch_request())
+        apns_helper = AppleAPNsHelper()
+        await apns_helper.send_message(request.apn.hex(),
+                                       AppleNotification.from_proto(request.notification).launch_request())
         return DefaultResponse(msg='success')

@@ -1,3 +1,5 @@
+import json
+
 from grpc import StatusCode
 from grpc.aio import ServicerContext
 
@@ -16,13 +18,17 @@ __all__ = ['NotificationService']
 
 
 async def _handle_update_score_query(request: notification_model.UpdateEventSubscribeRequest, context: ServicerContext):
+    sid = json.loads(request.extra_data.extra_data).get('sid') if request.extra_data.extra_data is not None else None
+    if sid is None:
+        await context.abort(StatusCode.INVALID_ARGUMENT, '额外数据，需要传递包含用户学号的，键为sid的字典')
     async with NCSqlManager().cursor(DatabaseConfig.User) as cursor:
         auth = request.extra_data.auth
         password = request.extra_data.password
         if auth == '' or password == '':
             await context.abort(StatusCode.UNAVAILABLE, details='账号或密码为空')
-        await cursor.execute('insert into UserAuthBind (uid, auth, password) values (%s, %s, %s) '
-                             'on duplicate key update UserAuthBind.password = password', request.uid, auth, password)
+        await cursor.execute('insert into UserAuthBind (uid, auth, sid, password) values (%s, %s, %s, %s) '
+                             'on duplicate key update UserAuthBind.password = password', (request.uid, auth, sid,
+                                                                                          password))
 
 
 class NotificationService(notification_grpc.NotificationServicer):
